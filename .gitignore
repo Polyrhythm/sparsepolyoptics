@@ -1,0 +1,10 @@
+*.fit
+.vscode
+fit
+fresnel
+gencode
+genpoly
+glRender
+printpoly
+sample-plot
+view

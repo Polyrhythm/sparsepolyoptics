@@ -1,4 +1,6 @@
-#version 450
+#version 420
+#extension GL_ARB_shading_language_420pack : require
+#extension GL_ARB_compute_shader : enable
 
 #define SIZE 16
 
@@ -11,9 +13,11 @@ void main()
 {
   ivec3 dstPos = ivec3(gl_GlobalInvocationID);
   ivec3 srcPos = ivec3(2*dstPos.xy, dstPos.z);
-  if(any(greaterThan(dstPos.xy, imageSize(dst).xy)))
+  //if(any(greaterThan(dstPos.xy, imageSize(dst).xy)))
+  if (dstPos.x > 1000 || dstPos.y > 1000)
     return;
-  if(any(greaterThan(srcPos.xy, imageSize(src).xy)))
+  //if(any(greaterThan(srcPos.xy, imageSize(src).xy)))
+  if (srcPos.x > 1000 || srcPos.y > 1000)
     return;
 
   vec4 val = vec4(1e7, 0, 0, 0);

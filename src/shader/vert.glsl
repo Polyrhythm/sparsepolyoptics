@@ -1,4 +1,4 @@
-#version 450
+#version 420
 uniform float minDepth;
 
 layout(location = 0) in vec2 vert;

@@ -16,7 +16,7 @@ src/spectrum.h
 
 .PHONY=all clean
 
-all: view fit gencode fresnel genpoly printpoly sample-plot
+all: view fit gencode fresnel genpoly printpoly sample-plot glRender
 
 view: Makefile src/view.c ${HEADERS}
 	${CC} ${OPTFLAGS} ${CFLAGS} src/view.c $(shell pkg-config --cflags --libs gtk+-2.0) ${LDFLAGS} -o view ${LDFLAGS}
