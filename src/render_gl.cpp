@@ -8,6 +8,16 @@
 #include <iostream>
 #include <math.h>
 
+#include "nanogui/nanogui.h"
+
+using namespace nanogui;
+Screen* screen = nullptr;
+
+// nanogui globals
+bool bvar = true;
+std::string strval = "A string";
+//----
+
 #define CHECK_ERROR                                             \
 {                                                               \
   GLenum err = glGetError();                                    \
@@ -21,7 +31,7 @@ using std::stringstream;
 
 static GLuint vaoQuad, *program, cubemapColor, cubemapMinMaxDepth;
 static float dist = 0, exposure = 0.2, apfac = 0.1;
-static int screenWidth = 960, screenHeight = 640;
+static int screenWidth = 1280, screenHeight = 720;
 static int cubemapSize = 2048;
 
 static int framectr = 0;
@@ -47,6 +57,8 @@ static void error_callback(int error, const char* description)
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+  screen->keyCallbackEvent(key, scancode, action, mods);
+
   if(key == GLFW_KEY_Q && action == GLFW_PRESS)
   {
     glfwSetWindowShouldClose(window, GL_TRUE);
@@ -76,6 +88,8 @@ static double prevx = 0, prevy = 0;
 
 static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 {
+  screen->cursorPosCallbackEvent(xpos, ypos);
+
   if(!drag)
     return;
 
@@ -95,6 +109,8 @@ static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
+  screen->mouseButtonCallbackEvent(button, action, mods);
+
   if(button == GLFW_MOUSE_BUTTON_LEFT)
   {
     drag = action;
@@ -110,6 +126,8 @@ static void resize_callback(GLFWwindow* window, int width, int height)
 {
   screenWidth = width;
   screenHeight = height;
+
+  screen->resizeCallbackEvent(width, height);
 }
 
 static void initQuad()
@@ -590,7 +608,7 @@ int main(int argc, char **argv)
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  window = glfwCreateWindow(screenWidth, screenHeight, "Preview", NULL, NULL);
+  window = glfwCreateWindow(screenWidth, screenHeight, "Sparse Polynomial Optics Preview", NULL, NULL);
   if (!window)
   {
     glfwTerminate();
@@ -598,6 +616,39 @@ int main(int argc, char **argv)
   }
 
   glfwMakeContextCurrent(window);
+
+  // nanogui
+  screen = new Screen();
+  screen->initialize(window, true);
+
+  bool enabled = true;
+  FormHelper* gui = new FormHelper(screen);
+  ref<Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Lens parameters");
+
+  gui->addGroup("Exposure");
+  gui->addButton("+", []() {
+    exposure /= sqrt(2.0);
+    updateUniforms();
+  });
+  gui->addButton("-", []() {
+    exposure *= sqrt(2.0);
+    updateUniforms();
+  });
+
+  gui->addGroup("Aperture");
+  gui->addButton("+", []() {
+    apfac += 0.01;
+    updateUniforms();
+  });
+  gui->addButton("-", []() {
+    apfac -= 0.01;
+    updateUniforms();
+  });
+
+
+  screen->setVisible(true);
+  screen->performLayout();
+  nanoguiWindow->center();
 
   glfwSetKeyCallback(window, key_callback);
   glfwSetWindowSizeCallback(window, resize_callback);
@@ -622,8 +673,13 @@ int main(int argc, char **argv)
     renderSecondPass();
     CHECK_ERROR;
     framectr++;
+
+    screen->drawContents();
+    screen->drawWidgets();
+
     glfwSwapBuffers(window);
     glfwPollEvents();
+
     float time = glfwGetTime() - begin;
     if(time > 10)
     {

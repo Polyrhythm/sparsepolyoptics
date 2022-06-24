@@ -1,7 +1,10 @@
 CC=gcc
 CXX=g++
 CFLAGS=-std=c11 -Wall -g -Iext/ -D_GNU_SOURCE -fopenmp
-CXXFLAGS=-Wall -g -Iext/ -D_GNU_SOURCE -fopenmp
+CPPFLAGS=-std=c++11 -Wall -g -Iext/ 
+CXXFLAGS=-Wall -g -isystemext/ -D_GNU_SOURCE -fopenmp
+NANOGUI_FLAGS=-Iext/nanogui/include -Iext/nanogui/ext/nanovg/src
+NANOGUI_LIB=-Wl,-rpath=. -l nanogui
 # OPTFLAGS=-I. -ggdb3 -Isrc/
 OPTFLAGS=-O3 -ffast-math -mfpmath=sse -march=native -fexpensive-optimizations -DNDEBUG -fno-finite-math-only -I. -Isrc/
 LDFLAGS=-lm
@@ -44,9 +47,9 @@ gencode: Makefile src/gencode.c ${HEADERS}
 
 lt-aperture-sampling: Makefile src/sample_ap_lt.c init.h lt_sample_aperture.h ${HEADERS}
 	${CC} ${OPTFLAGS} ${CFLAGS} -Irender/${lensname} src/sample_ap_lt.c -o lt-aperture-sampling ${LDFLAGS}
-	
-glRender: Makefile src/render_gl.c
-	${CXX} ${OPTFLAGS} ${CXXFLAGS} src/render_gl.c ${LDFLAGS} -o glRender -lGLEW -lGL -lGLU -lglfw
+
+glRender: Makefile src/render_gl.cpp
+	${CXX} ${CPPFLAGS} $(NANOGUI_FLAGS) src/render_gl.cpp ${LDFLAGS} -o glRender -lGLEW -lGL -lGLU -lglfw $(NANOGUI_LIB)
 
 clean:
 	rm -f view fit gencode fresnel fresnel.dat genpoly printpoly sample-plot sample-plot.dat lt_convergence.dat lt_convergence_profile.dat lt-aperture-sampling
